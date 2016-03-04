@@ -4,15 +4,20 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "/import-accounts-job-context.xml", "/test-context.xml" })
@@ -29,11 +34,27 @@ public class ImportAccountsIntegrationTest
 	private Resource accountsResource;
 	@Value("file:src/test/resources/input/accountsError.txt")
 	private Resource accountsErrorResource;
-	
+
+	@Autowired
+	private JobLauncherTestUtils jobLauncherTestUtils;
+
 	@Before
 	public void setUp() throws Exception
 	{
 		jdbcTemplate_i.update("delete from account");		
+	}
+
+	@Test
+	public void launchJob() throws Exception {
+
+		//JobExecution jobExecution = jobLauncherTestUtils.launchJob();
+
+		JobExecution jobExecution = jobLauncherTestUtils.launchStep("parseAndLoadAccountData", new JobParametersBuilder().addString("inputResource", accountsResource.getFile().getAbsolutePath())
+				.addLong("timestamp", System.currentTimeMillis())
+				.toJobParameters());
+
+		assertEquals(BatchStatus.COMPLETED, jobExecution.getStatus());
+
 	}
 
 	@Test

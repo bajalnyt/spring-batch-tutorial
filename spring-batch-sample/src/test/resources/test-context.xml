@@ -26,4 +26,6 @@
 		<property name="jobRepository" ref="jobRepository" />
 	</bean>
 
+	<!-- this bean should auto load -->
+	<bean class="org.springframework.batch.test.JobLauncherTestUtils"/>
 </beans>
